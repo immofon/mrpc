@@ -1,4 +1,4 @@
-package rpc
+package mrpc
 
 type RetStatus string
 
