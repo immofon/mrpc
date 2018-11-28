@@ -22,6 +22,18 @@ func New(upgrader websocket.Upgrader) *RPC {
 	}
 }
 
+func NewDefault() *RPC {
+	var upgrader = websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
+	}
+
+	return New(upgrader)
+}
+
 func (rpc *RPC) Register(method string, handler Handler) {
 	rpc.Lock()
 	defer rpc.Unlock()
