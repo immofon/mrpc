@@ -9,16 +9,6 @@ import (
 	"github.com/immofon/appoint/log"
 )
 
-type Handler interface {
-	RPCHandle(ctx context.Context, req Request) Return
-}
-
-type HandleFunc func(ctx context.Context, req Request) Return
-
-func (hdf HandleFunc) RPCHandle(ctx context.Context, req Request) Return {
-	return hdf(ctx, req)
-}
-
 type RPC struct {
 	sync.Mutex
 	upgrader websocket.Upgrader
