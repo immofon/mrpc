@@ -1,19 +1,67 @@
 package mrpc
 
-import "context"
+import (
+	"context"
+	"strings"
+)
 
 type Request struct {
-	Id   string            `json:"id"`
-	Func string            `json:"func"`
-	Argv map[string]string `json:"argv"`
+	Id     string            `json:"id"`
+	Method string            `json:"method"`
+	Args   map[string]string `json:"args"`
 }
 
+func Req(method string) Request {
+	return Request{
+		Id:     "",
+		Method: method,
+		Args:   make(map[string]string),
+	}
+}
+
+var encoder = strings.NewReplacer("π", "π0", ":", "π1")
+var decoder = strings.NewReplacer("π1", ":", "π0", "π")
+
 func (req Request) Get(key string, defaultv string) string {
-	v, ok := req.Argv[key]
+	v, ok := req.Args[key]
 	if !ok {
 		return defaultv
 	}
 	return v
+}
+
+func (req Request) GetArray(key string, defaultvs []string) []string {
+	raw := req.Get(key, "")
+	if raw == "" {
+		return defaultvs
+	}
+
+	vs := strings.Split(raw, ":")
+	for i, v := range vs {
+		vs[i] = decoder.Replace(v)
+	}
+
+	return vs
+}
+
+func (req Request) GetL(key string, defaultvs ...string) []string {
+	return req.GetArray(key, defaultvs)
+}
+
+func (req Request) Set(k, v string) Request {
+	req.Args[k] = v
+	return req
+}
+
+func (req Request) SetArray(key string, vs []string) Request {
+	for i, v := range vs {
+		vs[i] = encoder.Replace(v)
+	}
+	return req.Set(key, strings.Join(vs, ":"))
+}
+
+func (req Request) SetL(key string, vs ...string) Request {
+	return req.SetArray(key, vs)
 }
 
 func (req Request) Ret(status RetStatus) Return {

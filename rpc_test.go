@@ -2,8 +2,10 @@ package mrpc
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/immofon/appoint/log"
@@ -21,36 +23,24 @@ func TestRpc(t *testing.T) {
 	log.TextMode()
 	rpc := New(upgrader)
 
-	rpc.RegisterFunc("login", func(ctx context.Context, req Request) Return {
-		log.L().Info("rpc.call " + "login")
-		account := req.Get("account", "")
+	rpc.RegisterFunc("echo", func(ctx context.Context, req Request) Return {
+		msg := req.Get("msg", "please set field: msg")
 
-		//TODO auth
-
-		return req.Ret("ok").
-			Set("account", account).
-			SetUpdateContext(func(ctx context.Context) context.Context {
-				return WithId(ctx, account)
-			})
-	})
-
-	rpc.RegisterFunc("logout", func(ctx context.Context, req Request) Return {
-		return req.Ret("ok").
-			SetUpdateContext(func(ctx context.Context) context.Context {
-				return WithId(ctx, "")
-			})
-	})
-
-	rpc.RegisterFunc("self", func(ctx context.Context, req Request) Return {
-		id := GetId(ctx)
-		if id == "" {
-			return req.Ret("err").Set("err", "require-auth")
-		}
-
-		return req.Ret("ok").Set("id", id)
+		return req.Ret(Ok).Set("msg", msg)
 	})
 
 	http.Handle("/ws", rpc)
 	log.L().Info("serve :8100")
-	t.Error(http.ListenAndServe("localhost:8100", nil))
+	go func() {
+		t.Error(http.ListenAndServe("localhost:8100", nil))
+	}()
+
+	time.Sleep(time.Millisecond * 1000)
+
+	fmt.Println("ok")
+	c := NewClient("ws://localhost:8100/ws")
+	go c.Serve()
+
+	ret := c.Call(Req("echo").Set("msg", "hello mrpc"))
+	fmt.Println(ret)
 }

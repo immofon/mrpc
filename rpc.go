@@ -39,9 +39,9 @@ func (rpc *RPC) Call(ctx context.Context, req Request) Return {
 	rpc.Lock()
 	defer rpc.Unlock()
 
-	handler, ok := rpc.methods[req.Func]
+	handler, ok := rpc.methods[req.Method]
 	if !ok {
-		log.L().WithField("name", req.Func).Warn("rpc method was not defined")
+		log.L().WithField("name", req.Method).Warn("rpc method was not defined")
 		return req.Ret(NotFound)
 	}
 
