@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/immofon/appoint/log"
+	"github.com/immofon/mlog"
 )
 
 var upgrader = websocket.Upgrader{
@@ -20,7 +20,7 @@ var upgrader = websocket.Upgrader{
 }
 
 func TestRpc(t *testing.T) {
-	log.TextMode()
+	mlog.TextMode()
 	rpc := New(upgrader)
 
 	rpc.RegisterFunc("echo", func(ctx context.Context, req Request) Return {
@@ -30,7 +30,7 @@ func TestRpc(t *testing.T) {
 	})
 
 	http.Handle("/ws", rpc)
-	log.L().Info("serve :8100")
+	mlog.L().Info("serve :8100")
 	go func() {
 		t.Error(http.ListenAndServe("localhost:8100", nil))
 	}()

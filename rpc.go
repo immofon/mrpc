@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/gorilla/websocket"
-	"github.com/immofon/appoint/log"
+	"github.com/immofon/mlog"
 )
 
 type RPC struct {
@@ -41,7 +41,7 @@ func (rpc *RPC) Call(ctx context.Context, req Request) Return {
 
 	handler, ok := rpc.methods[req.Method]
 	if !ok {
-		log.L().WithField("name", req.Method).Warn("rpc method was not defined")
+		mlog.L().WithField("name", req.Method).Warn("rpc method was not defined")
 		return req.Ret(NotFound)
 	}
 
@@ -51,16 +51,16 @@ func (rpc *RPC) Call(ctx context.Context, req Request) Return {
 func (rpc *RPC) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	conn, err := rpc.upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.E(err).Error()
+		mlog.E(err).Error()
 		return
 	}
 	defer conn.Close()
 
-	log.L().
+	mlog.L().
 		WithField("ip", conn.RemoteAddr().String()).
 		Info("open connection")
 	defer func() {
-		log.L().
+		mlog.L().
 			WithField("ip", conn.RemoteAddr().String()).
 			Info("close connection")
 	}()
@@ -69,11 +69,11 @@ func (rpc *RPC) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	for {
 		var req Request
 		if err := conn.ReadJSON(&req); err != nil {
-			log.E(err).Error()
+			mlog.E(err).Error()
 			return
 		}
 
-		log.L().WithField("req", req).Info("get request")
+		mlog.L().WithField("req", req).Info("get request")
 
 		ret := rpc.Call(ctx, req)
 		if ret.UpdateContext != nil {
@@ -81,10 +81,10 @@ func (rpc *RPC) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if err := conn.WriteJSON(ret); err != nil {
-			log.E(err).Error()
+			mlog.E(err).Error()
 			return
 		}
-		log.L().
+		mlog.L().
 			WithField("ip", conn.RemoteAddr().String()).
 			WithField("ret", ret).
 			Debug("send response")
