@@ -18,11 +18,11 @@ type Client struct {
 	callbacks map[string]Callback // key: id
 }
 
+// panic: dial websocket
 func NewClient(url string) *Client {
 	conn, _, err := websocket.DefaultDialer.Dial(url, nil)
 	if err != nil {
 		panic(err)
-		return nil
 	}
 	return &Client{
 		ch: make(chan updateClientFn),

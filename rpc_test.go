@@ -35,7 +35,7 @@ func TestRpc(t *testing.T) {
 		t.Error(http.ListenAndServe("localhost:8100", nil))
 	}()
 
-	time.Sleep(time.Millisecond * 1000)
+	time.Sleep(time.Millisecond * 100)
 
 	fmt.Println("ok")
 	c := NewClient("ws://localhost:8100/ws")
@@ -43,4 +43,7 @@ func TestRpc(t *testing.T) {
 
 	ret := c.Call(Req("echo").Set("msg", "hello mrpc"))
 	fmt.Println(ret)
+	ret = c.Call(Req("echo"))
+	fmt.Println(ret)
+
 }
